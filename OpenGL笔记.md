@@ -657,7 +657,7 @@ FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.2);
 - - 使用一个uniform变量作为mix函数的第三个参数来改变两个纹理可见度，使用上和下键来改变箱子或笑脸的可见度：[参考解答](https://learnopengl.com/code_viewer_gh.php?code=src/1.getting_started/4.6.textures_exercise4/textures_exercise4.cpp)。
 	- 在片段着色器代码中添加一个uniform变量放置在mix函数的混合参数里，
 	- 再在按键函数当中实现按键实现
-## 变换/数学
+## 变换/线代
 ### 向量
 - **最基本的定义**：有一个方向和大小(==强度或长度)==通常只使用2到4维
 	- 例如：向左走10步，向北走3步，然后向右走5步”；“左”就是方向，“10步”就是向量的长度
@@ -701,10 +701,208 @@ FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.2);
 	![[叉乘在空间的表示.png]]
 - 叉乘的运算公式：$\left(\begin{array}{c} A_x \\ A_y \\ A_z \end{array}\right) \times \left(\begin{array}{c} B_x \\ B_y \\ B_z \end{array}\right) = \left(\begin{array}{c} A_y \cdot B_z - A_z \cdot B_y \\ A_z \cdot B_x - A_x \cdot B_z \\ A_x \cdot B_y - A_y \cdot B_x \end{array}\right)$
 ### 矩阵
+- $\begin{bmatrix} 1&2&3\\4&5&6\end{bmatrix}$ 
+- 可以使用(i,)来进行索引，i是行，j是列
+- 上面的矩阵叫做2* 3矩阵，也是3列2行，也是矩阵的维度
+### 矩阵的加减
+- 矩阵和标量之间的加减定义：$\begin{bmatrix}1 & 2 \\3 & 4\end{bmatrix} + 3 = \begin{bmatrix}1 + 3 & 2 + 3 \\3 + 3 & 4 + 3\end{bmatrix} = \begin{bmatrix}4 & 5 \\6 & 7\end{bmatrix}$ 标量与每一个元素进行加减运算
+- 加减运算只能在矩阵维度相同的时候进行运算
+### 矩阵的数乘
+- 和矩阵与标量的加减一样，矩阵与标量之间的乘法也是矩阵的每一个元素分别乘以该标量。
+- $\left[ \begin{array}{cc} 1 & 2 \\ 3 & 4 \end{array} \right] *2= \left[ \begin{array}{ccc} 2 \cdot 1 & 2 \cdot 2 \\ 2 \cdot 3 & 2 \cdot 4 \end{array} \right] = \left[ \begin{array}{cc} 2 & 4 \\ 6 & 8 \end{array} \right]$
+### 矩阵相乘
+- 矩阵相乘的限制
+	1. 只有当左侧矩阵的列数与右侧矩阵的行数相等，两个矩阵才能相乘。
+	2. 矩阵相乘不遵守交换律(Commutative)，也就是说A⋅B≠B⋅A
+- 2×2的矩阵相乘例子：$\begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix} \cdot \begin{bmatrix} 5 & 6 \\ 7 & 8 \end{bmatrix} = \begin{bmatrix} 1 \cdot 5 + 2 \cdot 7 & 1 \cdot 6 + 2 \cdot 8 \\ 3 \cdot 5 + 4 \cdot 7 & 3 \cdot 6 + 4 \cdot 8 \end{bmatrix} = \begin{bmatrix} 19 & 22 \\ 43 & 50 \end{bmatrix}$ 
+	- 用左侧矩阵的行数里的元素×右侧矩阵列数的元素，所对应的值
 
+### 矩阵和向量相乘
+- 向量其实一个**N×1**矩阵，N是向量分量的个数==(也叫N维矩阵向量)==如果有一个**M×N**矩阵，我们可以用这个矩阵乘以我们的**N×1**向量，因为这个矩阵的列数等于向量的行数，所以它们就能相乘。
+### 单位矩阵
+- 单位矩阵是一个除了对角线以外都是0的**N×N**矩阵。这种变换矩阵使一个向量完全不变
+- $\begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix} \cdot \begin{bmatrix} 1 \\ 2 \\ 3 \\ 4 \end{bmatrix} = \begin{bmatrix} 1 \cdot 1 \\ 1 \cdot 2 \\ 1 \cdot 3 \\ 1 \cdot 4 \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \\ 3 \\ 4 \end{bmatrix}$ 
 
+- **单位矩阵**通常是生成其他变换矩阵的起点，如果我们深挖线性代数，这还是一个对证明定理、解线性方程非常有用的矩阵。
+### 缩放
+- 对向量进行缩放其实就是对向量的长度进行缩放，但是保持方向不变，因为进行的是**2维或3维**操作，我们可以分别定义一个有2或3个缩放变量的向量，**每个变量缩放一个轴(x、y或z)**
+- ![[缩放.png]]$\overline{v}= (3,2)$缩放(0.5,2)其实是进行了**相乘**得到了这幅图
+- OpenGL通常是在3D空间进行操作的，对于2D的情况我们可以把z轴缩放1倍，这样z轴的值就不变了。我们刚刚的缩放操作是**不均匀(Non-uniform)缩放**，因为每个轴的缩放因子(Scaling Factor)都不一样。如果每个轴的缩放因子都一样那么就叫**均匀缩放(Uniform Scale)**。
+- 但是也可以构造一个**变换矩阵**来提供缩放功能，单位矩阵的每个对角线元素分别与向量的对应元素相乘，所以使用单位矩阵来构造**变换矩阵**把缩放变量表示为(S1,S2,S3)我们可以为任意向量(x,y,z)定义一个缩放矩阵：：$\begin{bmatrix} S_1 & 0 & 0 & 0 \\ 0 & S_2 & 0 & 0 \\ 0 & 0 & S_3 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix} \cdot \begin{pmatrix} x \\ y \\ z \\ 1 \end{pmatrix} = \begin{pmatrix} S_1 \cdot x \\ S_2 \cdot y \\ S_3 \cdot z \\ 1 \end{pmatrix}$ 第四个依然是1，==因为缩放w分量没意义==
+### 位移
+- **位移**：是在原始向量的基础上加上另一个向量获得了一个在不同位置的新向量的过程
+- 和缩放矩阵一样，在单位矩阵4* 4上有几个特别的位置来进行执行特定的操作，如果把位移向量表示为(Tx,Ty,Tz)(Tx,Ty,Tz)，我们就能把位移矩阵定义为$\begin{bmatrix} 1 & 0 & 0 & T_x \\ 0 & 1 & 0 & T_y \\ 0 & 0 & 1 & T_z \\ 0 & 0 & 0 & 1 \end{bmatrix} \cdot \begin{pmatrix} x \\ y \\ z \\ 1 \end{pmatrix} = \begin{pmatrix} x + T_x \\ y + T_y \\ z + T_z \\ 1 \end{pmatrix}$ 
+- **齐次坐标**：向量的w分量也叫齐次坐标。
+	- 使用齐次坐标的好处：允许在3D向量上进行唯一，可以用来创建3D视觉效果
+	- 如果一个向量的齐次坐标是0，这个坐标是**方向向量**
+### 旋转
+- 向量的旋转：2D或3D空间中的旋转用角(Angle)来表示。角可以是角度制或弧度制的，周角是360角度或2 [PI](https://en.wikipedia.org/wiki/Pi)弧度。
+- 大多数旋转函数需要用弧度制的角，但幸运的是角度制的角也可以很容易地转化为弧度制的：
+	- 弧度转角度：`角度 = 弧度 * (180.0f / PI)`
+	- 角度转弧度：`弧度 = 角度 * (PI / 180.0f)`
+	- `PI`约等于3.14159265359。
+- 在3D空间旋转需要定义一个**角和一个旋转轴**，物体会沿着给定的旋转轴旋转角度，一般使用一系列正弦和余弦函数组合得到
+- 沿x轴旋转：$\begin{bmatrix} 1 & 0 & 0 & 0 \\ 0 & \cos\theta & -\sin\theta & 0 \\ 0 & \sin\theta & \cos\theta & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix} \cdot \begin{pmatrix} x \\ y \\ z \\ 1 \end{pmatrix} = \begin{pmatrix} x \\ \cos\theta \cdot y - \sin\theta \cdot z \\ \sin\theta \cdot y + \cos\theta \cdot z \\ 1 \end{pmatrix}$
+- 沿y轴旋转：$\begin{bmatrix} \cos \theta & 0 & \sin \theta & 0 \\ 0 & 1 & 0 & 0 \\ -\sin \theta & 0 & \cos \theta & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix} \cdot \begin{pmatrix} x \\ y \\ z \\ 1 \end{pmatrix} = \begin{pmatrix} \cos \theta \cdot x + \sin \theta \cdot z \\ y \\ -\sin \theta \cdot x + \cos \theta \cdot z \\ 1 \end{pmatrix}$
+- 沿z轴旋转：$\begin{bmatrix} \cos \theta & -\sin \theta & 0 & 0 \\ \sin \theta & \cos \theta & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix} \cdot \begin{pmatrix} x \\ y \\ z \\ 1 \end{pmatrix} = \begin{pmatrix} \cos \theta \cdot x - \sin \theta \cdot y \\ \sin \theta \cdot x + \cos \theta \cdot y \\ z \\ 1 \end{pmatrix}$
+- **万向节死锁**：如果旋转多个轴可能会形成将物体固定住，并且必须只能旋转多个轴才能动到想要的方向并且不是沿着轴动会呈现一个弧线
+	- 避免这个锁的解决方案为使用**四元数**
+### 矩阵的组合
+- 使用矩阵进行变换的主要原因是，==可以根据矩阵之间的乘法，把多个变换组合到一个矩阵当中==
+- 例如：假设我们有一个顶点(x, y, z)，我们希望将其缩放2倍，然后位移(1, 2, 3)个单位。需要一个位移和缩放矩阵来完成这些变换：$Trans.Scale = \begin{bmatrix}1 & 0 & 0 & 1 \\0 & 1 & 0 & 2 \\0 & 0 & 1 & 3 \\0 & 0 & 0 & 1\end{bmatrix} \cdot \begin{bmatrix}2 & 0 & 0 & 0 \\0 & 2 & 0 & 0 \\0 & 0 & 2 & 0 \\0 & 0 & 0 & 1\end{bmatrix} = \begin{bmatrix}2 & 0 & 0 & 1 \\0 & 2 & 0 & 2 \\0 & 0 & 2 & 3 \\0 & 0 & 0 & 1\end{bmatrix}$ 
+- **注意**：当矩阵相乘时先写位移再写变换，因为矩阵乘法不遵守交换律，==顺序非常重要==，一般**先进行缩放，再是旋转，然后才是位移**否则会互相影响
+- 使用最后的变换矩阵左乘向量：$\begin{bmatrix} 2 & 0 & 0 & 1 \\ 0 & 2 & 0 & 2 \\ 0 & 0 & 2 & 3 \\ 0 & 0 & 0 & 1 \end{bmatrix} \cdot \begin{bmatrix} x \\ y \\ z \\ 1 \end{bmatrix} = \begin{bmatrix} 2x + 1 \\ 2y + 2 \\ 2z + 3 \\ 1 \end{bmatrix}$
+### glm工具
+- `translate`函数：主要用来创建变换矩阵，主要参数为，单位矩阵和一个位移向量
+- `radians`函数：将角度转化为弧度，参数为，一个矩阵，角度值，轴的位置
+- **旋转**：`glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));`
+- **缩放**：`glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));`
+- 尽管在代码中我们先位移再旋转，实际的变换却是先应用旋转再是位移的,==矩阵乘法是方向应用的==
+- **注意**：如果画两个箱子，第二个箱子需要重置为单位矩阵，不能继续沿用之前的矩阵
+## 坐标系统
+### 五个不同的坐标系统
+- 局部空间(Local Space，或者称为物体空间(Object Space))
+- 世界空间(World Space)
+	- 由**模型矩阵**实现
+	- 包含**位移、缩放和旋转操作**
+- 观察空间(View Space，或者称为视觉空间(Eye Space))
+	- 摄像机，**平移/旋转场景**存储在一个**观察矩阵**
+	- **观察矩阵，用来观察目标空间类似与相机运动**
+	-  将摄像机向后移动，和将整个场景向前移动是一样的。
+	- 在OpenGL里的坐标系是右手坐标系：
+	- ![[OpenGL右手坐标系.png]]
+- 裁剪空间(Clip Space)
+	- 在**特定范围外的点被裁剪掉**
+	- 将顶点坐标从观察变换到裁剪需要定义一个**投影矩阵**
+		- **投影矩阵**:指定了一个范围的坐标，投影矩阵会将在这个指定范围内的坐标变换为标准化设备坐标的范围(-1.0,1.0)，所有范围外的坐标不会被映射
+		- 如果只是图元的一部分超出了裁剪体积，则会重新构建这个三角形为一个或多个三角形使其能够适应裁剪范围
+		- **透视除法**：将位置向量的x，y，z分量分别除以向量的齐次w分量；透视除法是将4D裁剪空间坐标变换为3D标准化设备坐标的过程。这一步会在每一个顶点着色器运行的最后被自动执行
+		- **平截头体**：由投影矩阵创建的观察箱
+- 屏幕空间(Screen Space)
+- **这是一个顶点在被转化为片段之前需要经历的状态**
+### 正射投影
+- **正射投影矩阵**定义了一个类似立方体的平截头箱，定义了一个裁剪空间，在空间外的顶点会被裁剪掉
+- 创建一个正射投影矩阵需要指定可见平截头体的宽、高和长度。在使用正射投影矩阵变换至裁剪空间之后处于这个平截头体内的所有坐标将不会被裁剪掉。
+- ![[裁切空间.png]]
+- 这张图片定义了可见的坐标，==由宽、高、近平面和远平面==何出现在近平面之前或远平面之后的坐标都会被裁剪掉。
+- 创建正射投影矩阵使用：`glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);`
+	- 前两个参数指定了平截头体的左右坐标
+	- 第三和第四参数指定了平截头体的底部和顶部，==通过这四个参数定义近平面和远平面的大小==
+	- 第五和第六个参数定义近平面和远平面的距离
+- 因为正射直接将坐标映射到2D平面当中，==一个直接的投影矩阵会产生不真实的结果，**没有考虑透视**==
+### 透视投影
+- **透视投影矩阵**：
+	- 模仿现实当中的透视效果
+	- 修改每个顶点坐标的w值(齐次值)，离的越远w分量越大,顶点坐标越小
+	- 将**远处的平面**挤压到和近处平面相同的大小，但是**实际点的值不变**
+		- ![[透视投影矩阵变换.png]]
+- ==当坐标都落在裁剪空间内，透视除法会应用到裁剪空间坐标上==：$out = \begin{pmatrix} x/w \\ y/w \\ z/w \end{pmatrix}$
+- 创建透视投影矩阵:`glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width/(float)height, 0.1f, 100.0f);`
+	- `glm::perspective`所做的其实就是创建了一个定义了可视空间的大**平截头体**
+	- 第一个参数：定义了**fov**的值表示的是视野，并且设置了观察空间的大小，一般设置为45.0f--==真实的效果==
+	- 第二个参数：设置宽高比，==由视口的宽除以高得到==
+	- 第三和第四个参数：设置了近和远平面，通常近的为0.1f，远的为100.0f
+### 组合
+- 以上所有矩阵到裁剪坐标公式：$V_{clip}=M_{projection}·M_{view}·M_{mode l}·V_{local}$
+	- 矩阵运算的顺序是反的**需要从右往左阅读矩阵的乘法**最后的顶点应该被赋值到顶点着色器中的gl_Position，
+### 3D视图
+- 运用以下矩阵来创建，然后在顶点着色器当中修改gl_position的值使用**组合公式**
+```cpp
+//模型矩阵
+int modelLoc = glGetUniformLocation(ourShader.ID, "model");
+glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
+//观察矩阵
+int viewLoc = glGetUniformLocation(ourShader.ID, "view");
+glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
-
-
-
+//投影矩阵_透视投影
+int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
+glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+```
+### Z缓冲
+- **深度缓冲**：OpenGL存储的所有**深度信息**，在Z缓冲中，glfw会自动生成
+- **深度测试**：片段想要输出颜色时，OpenGL会深度值和Z缓冲来进行比较，如果当前的片段在其他片段之后会被丢弃，否则会覆盖
+- ==深度测试默认关闭==通过`glEnable`函数开启深度测试
+	- `glEnable和glDisable`函数用来启用或关闭某个OpenGL功能，==会一直保持启用/禁用状态，直到另一个调用来禁用/启用它==
+	- 深度测试功能名：`GL_DEPTH_TEST`
+	- **使用了深度测试，也需要在每次渲染迭代之前清楚深度缓冲==否则前一帧的深度信息仍然存在缓冲里==：** `glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);`
+## 摄像机
+- 本质是将**观察矩阵进行移动来当作摄像机**
+- 摄像机的定义：
+	- 需要它在世界空间中的位置、观察的方向、一个指向它右侧的向量以及一个它上方的向量
+### 摄像机/观察空间
+#### 1. 摄像机的位置
+- 目前的坐标系当作正z轴是屏幕指向自己的，所以定义为：`glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);`
+#### 2. 摄像机的方向
+- 指定的是摄像机指向的方向，也就是**目标点**
+- 公式为：将所需的目标点-摄像机的位置向量=摄像机的指向向量
+	- 因为这个公式实际算的是从目标点到位置，所以交换相减的顺序得到一个正的向量
+```cpp
+glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
+```
+#### 3. 右轴
+- ==是一个**右向量**：==代表摄像机空间x轴的正方向
+- 获取右向量的方法：
+	1. 定义一个**上向量**
+	2. 把上向量和**方向向量**进行叉乘，结果会同时垂直于两个向量
+```cpp
+glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f); 
+glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
+```
+#### 4. 上轴
+- 摄像机的上向量
+- 使用右轴和方向向量相乘:`glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);`
+## LookAt矩阵
+- 是一个观察矩阵，使用上面的三个向量定义而成，再加一个平移矩阵来构成
+- 使用glm自带的lookat函数来完成创建
+	- 需要一个位置、目标和上向量
+```cpp
+glm::mat4 view; 
+view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+```
+- 要想实现自由移动要在按键函数当中进行修改
+### 移动速度
+- **时间差变量**：它存储了渲染上一帧所用的时间，再把所有速度都去乘以deltaTime值，当上一帧渲染时间较久，也就说明这一帧所需速度要求更高，==会让摄像机的速度相应平衡==
+### 视角移动
+- 根据鼠标的输入改变`cameraFront变量`
+#### 欧拉角
+- **三种欧拉角**：
+	1. 俯仰角
+		- 是如何往上或往下看的角
+	2. 偏航角
+		- 表示的往左和往右看的程度
+	3. 滚转角
+		- 如何翻滚摄像机
+![[欧拉角.png]]
+- ==在摄像机系统来说==:只讨论俯仰角和偏航角，可以将它们转换为一个代表新的方向向量的3D向量
+- ![[公式推导.png]]基本图形理论
+- 俯仰角计算：假设在平面上然后目标点不变，摄像机**向上或者向下，和目标点形成的夹角**，我们所要求的就是那个角度，==然后通过鼠标移动来进行向上和向下的距离==
+	- 俯仰角计算![[俯仰角.png]]
+	- 所以使用sin来计算弧度但是其实x、z分量也被影响了使用cos计算
+- 偏航角计算：跟俯仰角计算类似，但是是在一个平面位置上来进行计算，也是**固定目标点**移动相机来进行计算，计算的是向左或者向右
+	- 偏航角计算![[偏航角.png]]
+- 最终的角度就是通过偏航角和俯仰角共同计算而成，x和z分量需要**乘以两角的值**y分量只需要计算俯仰角的值
+```cpp
+direction.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw)); // 译注：direction代表摄像机的前轴(Front)，这个前轴是和本文第一幅图片的第二个摄像机的方向向量是相反的 
+direction.y = sin(glm::radians(pitch)); 
+direction.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+```
+### 鼠标输入
+- 使用鼠标移动来决定**偏航角和俯仰角的值**，水平影响偏航角，竖直影响俯仰角
+- **获取的主要原理**：存储上一帧鼠标的位置，在当前帧中计算当前鼠标位置与上一帧的位置相差多少
+- 使用GLFW监听鼠标移动事件，使用一个回调函数：`void mouse_callback(GLFWwindow* window, double xpos, double ypos);`
+	- xpos和ypos代表当前鼠标的位置
+	- glfw当中调用的函数：`glfwSetCursorPosCallback(window, mouse_callback);`
+- 获取最终方向向量：
+	1. 计算鼠标距上一帧的偏移量。
+		1. 先存储上一帧的鼠标位置，先将初始值设为中心点
+		2. 然后在鼠标的回调函数里计算当前和上一帧的**偏移量**
+		3. 需要设置灵敏度的值
+	2. 把偏移量添加到摄像机的俯仰角和偏航角中。
+	3. 对偏航角和俯仰角进行最大和最小值的限制。
+		1. 限制最大角(==89°==)和最小角(==-89°==)
+		2. 保证只能看到天空和脚下
+	4. 计算方向向量
+		1. 将计算出来的方向向量传入`cameraFront`
